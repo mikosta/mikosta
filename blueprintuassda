@@ -1,0 +1,79 @@
+import networkx as nx
+import matplotlib.pyplot as plt
+
+gym_sports = [
+    {"sport": "Lari di Treadmill", "calories_per_minute": 8},
+    {"sport": "Bersepeda Statis", "calories_per_minute": 6},
+    {"sport": "Angkat Beban", "calories_per_minute": 6},
+    {"sport": "Zumba", "calories_per_minute": 9},
+    {"sport": "Latihan Kebugaran Kelompok", "calories_per_minute": 7},
+    {"sport": "Jalan Cepat di Treadmill", "calories_per_minute": 6},
+]
+
+home_sports = [
+    {"sport": "Jumping Jacks", "calories_per_minute": 8},
+    {"sport": "Sit-up", "calories_per_minute": 5},
+    {"sport": "Squat", "calories_per_minute": 6},
+    {"sport": "Lunges", "calories_per_minute": 6},
+    {"sport": "Plank", "calories_per_minute": 6},
+    {"sport": "Mountain Climbers", "calories_per_minute": 8},
+]
+
+# Buat objek graf
+G = nx.Graph()
+
+# Tambahkan simpul-simpul olahraga gym
+for sport in gym_sports:
+    G.add_node(sport["sport"], location="gym")
+
+# Tambahkan simpul-simpul olahraga rumah
+for sport in home_sports:
+    G.add_node(sport["sport"], location="rumah")
+
+# Tambahkan tepi antara olahraga dengan kalori per menit yang sama pada tempat yang sama
+for i in range(len(gym_sports)):
+    for j in range(i + 1, len(gym_sports)):
+        if gym_sports[i]["calories_per_minute"] == gym_sports[j]["calories_per_minute"]:
+            G.add_edge(gym_sports[i]["sport"], gym_sports[j]["sport"])
+
+for i in range(len(home_sports)):
+    for j in range(i + 1, len(home_sports)):
+        if home_sports[i]["calories_per_minute"] == home_sports[j]["calories_per_minute"]:
+            G.add_edge(home_sports[i]["sport"], home_sports[j]["sport"])
+
+# Memasukkan tempat dan waktu yang akan digunakan
+location = input("Masukkan tempat olahraga (gym/rumah): ")
+time = float(input("Masukkan waktu yang akan digunakan (dalam menit): "))
+
+# Mendapatkan olahraga yang sesuai dengan tempat dan waktu yang dimasukkan
+if location == "gym":
+    suitable_sports = [sport for sport in gym_sports if sport["calories_per_minute"] * time > 100]
+elif location == "rumah":
+    suitable_sports = [sport for sport in home_sports if sport["calories_per_minute"] * time > 100]
+else:
+    suitable_sports = []
+
+# Atur tampilan graf
+plt.figure(figsize=(8, 6))
+
+# Visualisasikan simpul dan tepi olahraga gym
+gym_sports_nodes = [n for n, attr in G.nodes(data=True) if attr["location"] == "gym"]
+nx.draw_networkx_nodes(G, pos=nx.spring_layout(G), nodelist=gym_sports_nodes, node_color="lightblue", node_size=800)
+nx.draw_networkx_labels(G, pos=nx.spring_layout(G), labels={n: n for n in gym_sports_nodes}, font_size=10, font_weight="bold")
+nx.draw_networkx_edges(G, pos=nx.spring_layout(G), edgelist=[(n1, n2) for n1, n2 in G.edges() if n1 in gym_sports_nodes and n2 in gym_sports_nodes], width=1, alpha=0.5, edge_color="gray")
+
+# Visualisasikan simpul dan tepi olahraga rumah
+home_sports_nodes = [n for n, attr in G.nodes(data=True) if attr["location"] == "rumah"]
+nx.draw_networkx_nodes(G, pos=nx.spring_layout(G), nodelist=home_sports_nodes, node_color="lightblue", node_size=800)
+nx.draw_networkx_labels(G, pos=nx.spring_layout(G), labels={n: n for n in home_sports_nodes}, font_size=10, font_weight="bold")
+nx.draw_networkx_edges(G, pos=nx.spring_layout(G), edgelist=[(n1, n2) for n1, n2 in G.edges() if n1 in home_sports_nodes and n2 in home_sports_nodes], width=1, alpha=0.5, edge_color="gray")
+
+# Tampilkan olahraga yang sesuai dengan tempat dan waktu yang dimasukkan
+if suitable_sports:
+    suitable_sports_nodes = [sport["sport"] for sport in suitable_sports]
+    nx.draw_networkx_edges(G, pos=nx.spring_layout(G), edgelist=[(n, sport) for n in gym_sports_nodes for sport in suitable_sports_nodes], width=2, alpha=0.8, edge_color="green")
+    nx.draw_networkx_edges(G, pos=nx.spring_layout(G), edgelist=[(n, sport) for n in home_sports_nodes for sport in suitable_sports_nodes], width=2, alpha=0.8, edge_color="green")
+    nx.draw_networkx_labels(G, pos=nx.spring_layout(G), labels={sport: sport for sport in suitable_sports_nodes}, font_size=10, font_weight="bold")
+
+plt.axis("off")
+plt.show()
